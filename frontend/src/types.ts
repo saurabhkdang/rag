@@ -19,3 +19,10 @@ export interface ChatInfo {
   name: string
   features: Record<string, boolean>
 }
+
+// Body for POST /api/admin/systems
+export interface CreateSystemInput {
+  id: string
+  name: string
+  subdomain?: string // optional: backend uses id if missing
+}

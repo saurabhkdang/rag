@@ -1,21 +1,23 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import AdminLayout from './AdminLayout'
+import DashboardPage from './DashboardPage'
+import LoginPage from './LoginPage'
 
 export default function AdminApp() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 text-slate-900">
-        <header className="border-b border-slate-200 bg-white px-6 py-4">
-          <h1 className="text-lg font-semibold">RAG Platform · Super Admin</h1>
-        </header>
+      <Routes>
+        {/* public */}
+        <Route path="/login" element={<LoginPage />} />
 
-        <main className="p-6">
-          <Routes>
-            <Route path="/" element={<p>Dashboard coming in Module 4.</p>} />
-            {/* any unknown URL -> back to dashboard */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+        {/* protected: AdminLayout checks login, then shows the page inside it */}
+        <Route element={<AdminLayout />}>
+          <Route path="/" element={<DashboardPage />} />
+        </Route>
+
+        {/* any unknown URL -> dashboard */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   )
 }

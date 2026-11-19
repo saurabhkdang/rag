@@ -10,3 +10,16 @@ export function getSubdomain(): string | null {
   if (!host.endsWith(suffix)) return null
   return host.slice(0, -suffix.length) || null
 }
+
+// Body for POST /api/admin/systems
+export interface CreateSystemInput {
+  id: string
+  name: string
+  subdomain?: string // optional: backend uses id if missing
+}
+
+// Full URL of a system, e.g. http://acme.localhost:5173
+export function systemUrl(subdomain: string): string {
+  const { protocol, port } = window.location
+  return `${protocol}//${subdomain}.${BASE_DOMAIN}${port ? ':' + port : ''}`
+}
