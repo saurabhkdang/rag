@@ -1,0 +1,36 @@
+# ===== Python =====
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# ===== Secrets =====
+# Never commit real secrets (API keys, admin password)
+.env
+.env.*
+!.env.example
+
+# ===== Client data =====
+# Each RAG system folder holds client documents, vectors and logs.
+# Keep only the empty folder in git.
+backend/rag_systems/*
+!backend/rag_systems/.gitkeep
+
+# ===== Frontend =====
+node_modules/
+dist/
+
+# ===== Logs =====
+*.log
+
+# ===== Editor / OS =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== Claude Code local settings =====
+.claude/settings.local.json
