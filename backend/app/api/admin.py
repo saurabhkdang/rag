@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from app.core import registry
 from app.core.auth import check_password, create_token, require_admin
 from app.core.tenant import require_admin_host
+from app.rag import vectorstore
 
 # Every route in this file only works on admin.<BASE_DOMAIN>
 router = APIRouter(
@@ -106,5 +107,6 @@ def stop_system(system_id: str):
 @router.delete("/systems/{system_id}", dependencies=ADMIN_ONLY)
 def archive_system(system_id: str):
     _get_or_404(system_id)
+    vectorstore.close(system_id)  # release ChromaDB files first (Windows locks open files)
     registry.archive_system(system_id)
     return {"archived": system_id}

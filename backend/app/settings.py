@@ -30,3 +30,7 @@ if not ADMIN_PASSWORD or not SECRET_KEY:
 # ----- Uploads -----
 ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md"}
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))
+
+# ----- Embeddings -----
+# Changing this later requires "Re-index all" for every system
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")

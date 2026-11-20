@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 
 from app.core import registry
 from app.core.auth import require_admin
@@ -14,6 +14,7 @@ from app.core.tenant import require_admin_host
 from app.rag.chunker import chunk_pages
 from app.rag.loader import load_document
 from app.settings import ALLOWED_EXTENSIONS, MAX_UPLOAD_MB
+from app.rag import embedder, ingest, vectorstore
 
 # Admin host + login required for every route in this file
 router = APIRouter(
@@ -55,6 +56,8 @@ def _get_file(system_id, filename):
 @router.get("")
 def list_documents(system_id: str):
     folder = _documents_dir(system_id)
+    indexed = vectorstore.count_by_source(system_id)  # {"file.pdf": 42, ...}
+
     documents = []
     for path in sorted(folder.iterdir()):
         if path.is_file() and path.suffix.lower() in ALLOWED_EXTENSIONS:
@@ -63,6 +66,7 @@ def list_documents(system_id: str):
                 "name": path.name,
                 "size": stat.st_size,
                 "uploaded_at": datetime.fromtimestamp(stat.st_mtime).isoformat(timespec="seconds"),
+                "indexed_chunks": indexed.get(path.name, 0),  # 0 = not indexed yet
             })
     return documents
 
@@ -115,6 +119,7 @@ def upload_document(system_id: str, file: UploadFile):
 @router.delete("/{filename}")
 def delete_document(system_id: str, filename: str):
     path = _get_file(system_id, filename)
+    vectorstore.delete_document(system_id, filename)  # remove its vectors too
     path.unlink()
     return {"deleted": filename}
 
@@ -137,3 +142,41 @@ def preview_chunks(system_id: str, filename: str, limit: int = 20):
         "total_chunks": len(chunks),
         "chunks": chunks[:limit],   # only the first few, to keep the response small
     }
+
+@router.post("/reindex-all")
+def reindex_all(system_id: str):
+    """Rebuild the whole index (after changing chunk settings)."""
+    _documents_dir(system_id)
+    try:
+        results = ingest.reindex_all(system_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"indexed": results, "total_chunks": sum(results.values())}
+
+
+@router.post("/{filename}/index")
+def index_one(system_id: str, filename: str):
+    """Load -> chunk -> embed -> store one file."""
+    _get_file(system_id, filename)
+    try:
+        count = ingest.index_document(system_id, filename)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"name": filename, "indexed_chunks": count}
+
+
+@router.get("/search")
+def search_documents(
+    system_id: str,
+    q: str,
+    top_k: int | None = Query(default=None, ge=1, le=20),
+):
+    """Test retrieval: which chunks match this question best?"""
+    _documents_dir(system_id)
+    if not q.strip():
+        raise HTTPException(status_code=400, detail="Query is empty")
+
+    config = registry.load_system(system_id)
+    query_vector = embedder.embed_query(q)
+    results = vectorstore.search(system_id, query_vector, top_k or config["top_k"])
+    return {"query": q, "results": results}
