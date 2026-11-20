@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getChatInfo } from '../api'
 import type { ChatInfo } from '../types'
+import ChatWindow from './ChatWindow'
 
 export default function ChatApp() {
   const [info, setInfo] = useState<ChatInfo | null>(null)
@@ -28,13 +29,13 @@ export default function ChatApp() {
   if (!info) return <CenteredMessage text="Loading..." />
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    // h-dvh = exactly the screen height (also correct on mobile browsers)
+    <div className="flex h-dvh flex-col bg-white">
       <header className="border-b border-slate-200 px-6 py-4">
         <h1 className="text-lg font-semibold text-slate-800">{info.name}</h1>
       </header>
-      <main className="flex flex-1 items-center justify-center text-slate-400">
-        Chat UI coming in Module 8.
-      </main>
+
+      <ChatWindow systemName={info.name} />
     </div>
   )
 }

@@ -81,3 +81,25 @@ export interface SearchResponse {
   query: string
   results: SearchResult[]
 }
+
+// One source in an answer (only sent when the system has citations on)
+export interface Source {
+  source: string
+  page: number
+}
+
+// POST /api/chat/ask
+export interface AskResponse {
+  answer: string
+  sources?: Source[]
+}
+
+export type MessageRole = 'user' | 'assistant' | 'error'
+
+// One bubble in the chat
+export interface ChatMessage {
+  id: number
+  role: MessageRole
+  text: string
+  sources?: Source[]
+}
