@@ -8,6 +8,7 @@ import type {
   ReindexResult,
   SearchResponse,
   UploadResult,
+  AskResponse
 } from './types'
 
 
@@ -164,4 +165,11 @@ export function searchDocuments(systemId: string, query: string, topK: number) {
   // URLSearchParams safely encodes spaces, ?, & etc. in the question
   const params = new URLSearchParams({ q: query, top_k: String(topK) })
   return request<SearchResponse>(`${documentsPath(systemId)}/search?${params}`)
+}
+
+export function askQuestion(question: string) {
+  return request<AskResponse>('/chat/ask', {
+    method: 'POST',
+    body: JSON.stringify({ question }),
+  })
 }
