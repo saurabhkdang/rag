@@ -32,6 +32,7 @@ export interface DocumentInfo {
   name: string
   size: number // bytes
   uploaded_at: string
+  indexed_chunks: number // 0 = not indexed yet
 }
 
 // POST /api/admin/systems/{id}/documents
@@ -54,4 +55,29 @@ export interface ChunkPreview {
   chunk_overlap: number
   total_chunks: number
   chunks: Chunk[]
+}
+
+// POST .../documents/{name}/index
+export interface IndexResult {
+  name: string
+  indexed_chunks: number
+}
+
+// POST .../documents/reindex-all
+export interface ReindexResult {
+  indexed: Record<string, number> // { "file.pdf": 42 }
+  total_chunks: number
+}
+
+export interface SearchResult {
+  text: string
+  source: string
+  page: number
+  score: number // 1 = same meaning, 0 = unrelated
+}
+
+// GET .../documents/search?q=...
+export interface SearchResponse {
+  query: string
+  results: SearchResult[]
 }

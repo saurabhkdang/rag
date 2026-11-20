@@ -3,9 +3,13 @@ import type {
   ChunkPreview,
   CreateSystemInput,
   DocumentInfo,
+  IndexResult,
   RagSystem,
+  ReindexResult,
+  SearchResponse,
   UploadResult,
 } from './types'
+
 
 
 // An Error that also remembers the HTTP status (401, 404, 503 ...)
@@ -142,4 +146,22 @@ export function previewChunks(systemId: string, filename: string, limit = 20) {
   return request<ChunkPreview>(
     `${documentsPath(systemId)}/${encodeURIComponent(filename)}/chunks?limit=${limit}`,
   )
+}
+
+// ---------- indexing & search ----------
+export function indexDocument(systemId: string, filename: string) {
+  return request<IndexResult>(
+    `${documentsPath(systemId)}/${encodeURIComponent(filename)}/index`,
+    { method: 'POST' },
+  )
+}
+
+export function reindexAll(systemId: string) {
+  return request<ReindexResult>(`${documentsPath(systemId)}/reindex-all`, { method: 'POST' })
+}
+
+export function searchDocuments(systemId: string, query: string, topK: number) {
+  // URLSearchParams safely encodes spaces, ?, & etc. in the question
+  const params = new URLSearchParams({ q: query, top_k: String(topK) })
+  return request<SearchResponse>(`${documentsPath(systemId)}/search?${params}`)
 }
