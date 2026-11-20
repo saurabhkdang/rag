@@ -27,3 +27,6 @@ TOKEN_HOURS = int(os.getenv("TOKEN_HOURS", "12"))
 if not ADMIN_PASSWORD or not SECRET_KEY:
   raise RuntimeError("Missing required secrets: ADMIN_PASSWORD and SECRET_KEY must be set")
 
+# ----- Uploads -----
+ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md"}
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))

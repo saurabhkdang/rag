@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core import registry
 from app.core.auth import check_password, create_token, require_admin
@@ -32,9 +32,9 @@ class UpdateSystemRequest(BaseModel):
     # All optional: send only what you want to change
     name: str | None = None
     system_prompt: str | None = None
-    chunk_size: int | None = None
-    chunk_overlap: int | None = None
-    top_k: int | None = None
+    chunk_size: int | None = Field(default=None, ge=100, le=5000)    # ge = >=, le = <=
+    chunk_overlap: int | None = Field(default=None, ge=0, le=1000)
+    top_k: int | None = Field(default=None, ge=1, le=20)
     features: dict | None = None
 
 
@@ -79,8 +79,15 @@ def get_system(system_id: str):
 
 @router.patch("/systems/{system_id}", dependencies=ADMIN_ONLY)
 def update_system(system_id: str, body: UpdateSystemRequest):
-    _get_or_404(system_id)
+    config = _get_or_404(system_id)
     changes = body.model_dump(exclude_none=True)  # only fields that were sent
+
+    # Check the combination: use the new value if sent, otherwise the current one
+    chunk_size = changes.get("chunk_size", config["chunk_size"])
+    chunk_overlap = changes.get("chunk_overlap", config["chunk_overlap"])
+    if chunk_overlap >= chunk_size:
+        raise HTTPException(status_code=400, detail="chunk_overlap must be smaller than chunk_size")
+
     return registry.update_system(system_id, changes)
 
 

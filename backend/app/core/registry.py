@@ -55,6 +55,10 @@ def _validate_slug(value, label):
 
 # ---------- read ----------
 
+def documents_dir(system_id):
+    """Folder where a system's uploaded files are stored."""
+    return _folder(system_id) / "documents"
+
 def load_system(system_id):
     """Return the config dict of one system, or None if it doesn't exist."""
     path = _config_path(system_id)
