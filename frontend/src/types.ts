@@ -26,3 +26,32 @@ export interface CreateSystemInput {
   name: string
   subdomain?: string // optional: backend uses id if missing
 }
+
+// GET /api/admin/systems/{id}/documents
+export interface DocumentInfo {
+  name: string
+  size: number // bytes
+  uploaded_at: string
+}
+
+// POST /api/admin/systems/{id}/documents
+export interface UploadResult {
+  name: string
+  size: number
+  pages: number
+  characters: number
+}
+
+export interface Chunk {
+  chunk_index: number
+  page: number
+  text: string
+}
+
+// GET /api/admin/systems/{id}/documents/{name}/chunks
+export interface ChunkPreview {
+  chunk_size: number
+  chunk_overlap: number
+  total_chunks: number
+  chunks: Chunk[]
+}

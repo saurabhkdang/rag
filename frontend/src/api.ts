@@ -1,4 +1,11 @@
-import type { ChatInfo, CreateSystemInput, RagSystem } from './types'
+import type {
+  ChatInfo,
+  ChunkPreview,
+  CreateSystemInput,
+  DocumentInfo,
+  RagSystem,
+  UploadResult,
+} from './types'
 
 
 // An Error that also remembers the HTTP status (401, 404, 503 ...)
@@ -30,7 +37,9 @@ export function clearToken() {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers)
 
-  if (options.body) {
+  // JSON bodies need this header. File uploads (FormData) must NOT have it:
+  // the browser sets it itself, including the file "boundary".
+  if (options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -71,6 +80,10 @@ export function getErrorMessage(err: unknown): string {
 }
 
 // ---------- admin ----------
+export function getSystem(id: string) {
+  return request<RagSystem>(`/admin/systems/${id}`)
+}
+
 export async function login(password: string) {
   const data = await request<{ token: string }>('/admin/login', {
     method: 'POST',
@@ -100,4 +113,33 @@ export function stopSystem(id: string) {
 
 export function archiveSystem(id: string) {
   return request<{ archived: string }>(`/admin/systems/${id}`, { method: 'DELETE' })
+}
+
+// ---------- documents ----------
+function documentsPath(systemId: string) {
+  return `/admin/systems/${systemId}/documents`
+}
+
+export function listDocuments(systemId: string) {
+  return request<DocumentInfo[]>(documentsPath(systemId))
+}
+
+export function uploadDocument(systemId: string, file: File) {
+  const form = new FormData()
+  form.append('file', file) // 'file' = the parameter name in FastAPI's upload_document
+  return request<UploadResult>(documentsPath(systemId), { method: 'POST', body: form })
+}
+
+// encodeURIComponent: file names can contain spaces and other characters
+export function deleteDocument(systemId: string, filename: string) {
+  return request<{ deleted: string }>(
+    `${documentsPath(systemId)}/${encodeURIComponent(filename)}`,
+    { method: 'DELETE' },
+  )
+}
+
+export function previewChunks(systemId: string, filename: string, limit = 20) {
+  return request<ChunkPreview>(
+    `${documentsPath(systemId)}/${encodeURIComponent(filename)}/chunks?limit=${limit}`,
+  )
 }

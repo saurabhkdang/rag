@@ -4,6 +4,7 @@ import StatusBadge from '../components/StatusBadge'
 import { systemUrl } from '../config'
 import type { RagSystem } from '../types'
 import CreateSystemForm from './CreateSystemForm'
+import { Link } from 'react-router'
 
 export default function DashboardPage() {
   const [systems, setSystems] = useState<RagSystem[]>([])
@@ -89,7 +90,10 @@ export default function DashboardPage() {
             {systems.map((system) => (
               <tr key={system.id} className="border-b border-slate-100 last:border-0">
                 <td className="px-4 py-3">
-                  <div className="font-medium">{system.name}</div>
+                  <Link to={`/systems/${system.id}`} className="font-medium hover:text-blue-600 hover:underline">
+                    {system.name}
+                  </Link>
+
                   <div className="text-xs text-slate-400">{system.id}</div>
                 </td>
                 <td className="px-4 py-3">
