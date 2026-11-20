@@ -34,3 +34,10 @@ MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "20"))
 # ----- Embeddings -----
 # Changing this later requires "Re-index all" for every system
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+
+# ----- LLM (OpenAI) -----
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "")
+
+# Search results with a lower score are treated as "not relevant"
+MIN_SCORE = float(os.getenv("MIN_SCORE", "0.3"))
