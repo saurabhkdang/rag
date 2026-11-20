@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { deleteDocument, getErrorMessage, getSystem, listDocuments } from '../api'
+import {
+  deleteDocument,
+  getErrorMessage,
+  getSystem,
+  indexDocument,
+  listDocuments,
+  reindexAll,
+} from '../api'
+
 import StatusBadge from '../components/StatusBadge'
 import { systemUrl } from '../config'
 import { formatBytes, formatDateTime } from '../format'
 import type { DocumentInfo, RagSystem } from '../types'
 import ChunkPreviewPanel from './ChunkPreviewPanel'
 import DocumentUpload from './DocumentUpload'
+import SearchTester from './SearchTester'
 
 export default function SystemPage() {
   const { id = '' } = useParams() // "acme" from the URL /systems/acme
@@ -16,6 +25,7 @@ export default function SystemPage() {
   const [error, setError] = useState<string | null>(null)
   const [previewFile, setPreviewFile] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [indexing, setIndexing] = useState<string | null>(null) // filename, or '*' = all
 
   // useCallback keeps the SAME function between renders (unless id changes),
   // so it's safe to use inside useEffect's dependency list
@@ -48,6 +58,38 @@ export default function SystemPage() {
     }
   }
 
+    async function handleIndex(name: string) {
+    setIndexing(name)
+    setError(null)
+    try {
+      const result = await indexDocument(id, name)
+      // Update only this row: copy it (...doc) and change one field
+      setDocuments((list) =>
+        list.map((doc) => (doc.name === name ? { ...doc, indexed_chunks: result.indexed_chunks } : doc)),
+      )
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setIndexing(null)
+    }
+  }
+
+  async function handleReindexAll() {
+    if (!window.confirm('Rebuild the index for all documents? Use this after changing chunk settings.')) return
+
+    setIndexing('*')
+    setError(null)
+    try {
+      await reindexAll(id)
+      loadDocuments() // reload to get the new counts
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setIndexing(null)
+    }
+  }
+
+
   if (!system) {
     return (
       <div>
@@ -58,6 +100,8 @@ export default function SystemPage() {
       </div>
     )
   }
+
+  const notIndexed = documents.filter((doc) => doc.indexed_chunks === 0).length
 
   return (
     <div>
@@ -83,7 +127,23 @@ export default function SystemPage() {
       {error && <p className="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>}
 
       {/* ----- documents ----- */}
-      <h3 className="mb-3 font-semibold">Documents ({documents.length})</h3>
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="font-semibold">
+          Documents ({documents.length})
+          {notIndexed > 0 && (
+            <span className="ml-2 text-sm font-normal text-amber-600">{notIndexed} not indexed</span>
+          )}
+        </h3>
+        {documents.length > 0 && (
+          <button
+            onClick={handleReindexAll}
+            disabled={indexing !== null}
+            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
+          >
+            {indexing === '*' ? 'Re-indexing...' : 'Re-index all'}
+          </button>
+        )}
+      </div>
 
       <DocumentUpload systemId={id} onUploaded={loadDocuments} />
 
@@ -99,6 +159,7 @@ export default function SystemPage() {
                 <th className="px-4 py-3 font-medium">File</th>
                 <th className="px-4 py-3 font-medium">Size</th>
                 <th className="px-4 py-3 font-medium">Uploaded</th>
+                <th className="px-4 py-3 font-medium">Indexed</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
@@ -111,10 +172,24 @@ export default function SystemPage() {
                   <td className="px-4 py-3 font-medium">{doc.name}</td>
                   <td className="px-4 py-3 text-slate-500">{formatBytes(doc.size)}</td>
                   <td className="px-4 py-3 text-slate-500">{formatDateTime(doc.uploaded_at)}</td>
+                  <td className="px-4 py-3">
+                    {doc.indexed_chunks > 0 ? (
+                      <span className="text-green-700">✓ {doc.indexed_chunks} chunks</span>
+                    ) : (
+                      <span className="text-amber-600">Not indexed</span>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
                     <button
+                      onClick={() => handleIndex(doc.name)}
+                      disabled={indexing !== null}
+                      className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      {indexing === doc.name ? 'Indexing...' : doc.indexed_chunks > 0 ? 'Re-index' : 'Index'}
+                    </button>
+                    <button
                       onClick={() => setPreviewFile(doc.name)}
-                      className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
+                      className="ml-2 rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
                     >
                       Preview chunks
                     </button>
@@ -132,6 +207,8 @@ export default function SystemPage() {
           </table>
         </div>
       )}
+
+      <SearchTester systemId={id} defaultTopK={system.top_k} />
 
       {/* key={previewFile}: a different file = a brand-new panel with fresh state */}
       {previewFile && (
