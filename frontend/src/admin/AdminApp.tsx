@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import AdminLayout from './AdminLayout'
 import DashboardPage from './DashboardPage'
 import LoginPage from './LoginPage'
+import SystemPage from './SystemPage'
 
 export default function AdminApp() {
   return (
@@ -13,6 +14,7 @@ export default function AdminApp() {
         {/* protected: AdminLayout checks login, then shows the page inside it */}
         <Route element={<AdminLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/systems/:id" element={<SystemPage />} />
         </Route>
 
         {/* any unknown URL -> dashboard */}
