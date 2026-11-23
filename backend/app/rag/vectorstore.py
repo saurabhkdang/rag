@@ -55,7 +55,7 @@ def add_chunks(system_id, filename, chunks, vectors):
             embeddings=vectors[i : i + BATCH_SIZE],
             documents=[c["text"] for c in batch],
             metadatas=[
-                {"source": filename, "page": c["page"], "chunk_index": c["chunk_index"]}
+                {"source": filename, "page": c["page"], "chunk_index": c["chunk_index"], "context": c.get("context", "")}
                 for c in batch
             ],
         )
@@ -105,6 +105,7 @@ def search(system_id, query_vector, top_k):
             "text": text,
             "source": meta["source"],
             "page": meta["page"],
+            "context": meta.get("context", ""),
             "score": round(1 - distance, 4),  # cosine distance -> similarity (1 = same meaning)
         })
     return matches
@@ -113,6 +114,13 @@ def all_chunks(system_id):
     """Every stored chunk of a system (used by keyword search)."""
     result = get_collection(system_id).get(include=["documents", "metadatas"])
     return [
-        {"id": chunk_id, "text": text, "source": meta["source"], "page": meta["page"], "score": None}
+        {
+            "id": chunk_id,
+            "text": text,
+            "context": meta.get("context", ""),
+            "source": meta["source"],
+            "page": meta["page"],
+            "score": None,
+        }
         for chunk_id, text, meta in zip(result["ids"], result["documents"], result["metadatas"])
     ]

@@ -87,6 +87,9 @@ export default function SearchTester({ systemId, defaultTopK }: Props) {
                 <MatchBadge match={r.match} />
                 {r.score !== null && <ScoreBar score={r.score} />}
               </div>
+              {r.context && (
+                <p className="mb-1 text-xs italic text-slate-500">{r.context}</p>
+              )}
               <p className="whitespace-pre-wrap text-sm text-slate-800">{r.text}</p>
             </li>
           ))}

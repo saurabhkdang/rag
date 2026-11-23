@@ -9,7 +9,7 @@ import re
 
 from rank_bm25 import BM25Okapi
 
-from app.rag import vectorstore
+from app.rag import contextualizer, vectorstore
 
 
 def tokenize(text):
@@ -24,7 +24,7 @@ def search(system_id, question, limit):
 
     # Build the BM25 index from all chunks of this system.
     # Fast for a few thousand chunks; for very large systems we'd cache it.
-    bm25 = BM25Okapi([tokenize(c["text"]) for c in chunks])
+    bm25 = BM25Okapi([tokenize(contextualizer.search_text(c)) for c in chunks])
     scores = bm25.get_scores(tokenize(question))
 
     ranked = sorted(zip(chunks, scores), key=lambda pair: pair[1], reverse=True)
