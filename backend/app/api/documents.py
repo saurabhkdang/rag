@@ -14,7 +14,7 @@ from app.core.tenant import require_admin_host
 from app.rag.chunker import chunk_pages
 from app.rag.loader import load_document
 from app.settings import ALLOWED_EXTENSIONS, MAX_UPLOAD_MB
-from app.rag import embedder, ingest, vectorstore
+from app.rag import ingest, retriever, vectorstore
 
 # Admin host + login required for every route in this file
 router = APIRouter(
@@ -177,6 +177,5 @@ def search_documents(
         raise HTTPException(status_code=400, detail="Query is empty")
 
     config = registry.load_system(system_id)
-    query_vector = embedder.embed_query(q)
-    results = vectorstore.search(system_id, query_vector, top_k or config["top_k"])
+    results = retriever.retrieve(config, q, top_k)
     return {"query": q, "results": results}

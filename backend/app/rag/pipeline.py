@@ -1,11 +1,12 @@
 """
+Retrieve (vector or hybrid)
 Pipeline = the full RAG flow for one question:
   1. Retrieve - find the chunks closest in meaning to the question
   2. Filter   - drop chunks that aren't relevant enough
   3. Augment  - put those chunks into the prompt as "context"
   4. Generate - the LLM writes an answer using only that context
 """
-from app.rag import embedder, llm, vectorstore
+from app.rag import llm, retriever
 from app.settings import MIN_SCORE
 
 NO_ANSWER = "I couldn't find information about that in the available documents."
@@ -28,12 +29,8 @@ def _build_context(chunks):
 
 
 def answer_question(config, question):
-    # 1. Retrieve
-    query_vector = embedder.embed_query(question)
-    chunks = vectorstore.search(config["id"], query_vector, config["top_k"])
-
-    # 2. Filter
-    relevant = [c for c in chunks if c["score"] >= MIN_SCORE]
+    # 1 + 2. Retrieve relevant chunks (vector or hybrid, depending on the system's features)
+    relevant = retriever.retrieve(config, question)
     if not relevant:
         # Nothing relevant -> don't call the LLM at all (no cost, no made-up answer)
         return {"answer": NO_ANSWER, "sources": [], "usage": None}

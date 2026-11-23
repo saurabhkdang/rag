@@ -97,13 +97,22 @@ def search(system_id, query_vector, top_k):
 
     matches = []
     # [0] because we sent one query; Chroma returns one list per query
-    for text, meta, distance in zip(
-        result["documents"][0], result["metadatas"][0], result["distances"][0]
+    for chunk_id, text, meta, distance in zip(
+        result["ids"][0], result["documents"][0], result["metadatas"][0], result["distances"][0]
     ):
         matches.append({
+            "id": chunk_id,
             "text": text,
             "source": meta["source"],
             "page": meta["page"],
             "score": round(1 - distance, 4),  # cosine distance -> similarity (1 = same meaning)
         })
     return matches
+
+def all_chunks(system_id):
+    """Every stored chunk of a system (used by keyword search)."""
+    result = get_collection(system_id).get(include=["documents", "metadatas"])
+    return [
+        {"id": chunk_id, "text": text, "source": meta["source"], "page": meta["page"], "score": None}
+        for chunk_id, text, meta in zip(result["ids"], result["documents"], result["metadatas"])
+    ]

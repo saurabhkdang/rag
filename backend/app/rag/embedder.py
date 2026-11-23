@@ -5,7 +5,7 @@ Runs locally on the CPU: free, private, no API key.
 """
 import threading
 
-from app.settings import EMBEDDING_MODEL
+from app.settings import EMBEDDING_MODEL, EMBEDDING_QUERY_PREFIX
 
 _model = None
 _lock = threading.Lock()
@@ -36,5 +36,5 @@ def embed_texts(texts):
 
 
 def embed_query(text):
-    """One question -> one vector."""
-    return embed_texts([text])[0]
+    """One question -> one vector. (Chunks are embedded WITHOUT the prefix.)"""
+    return embed_texts([EMBEDDING_QUERY_PREFIX + text])[0]

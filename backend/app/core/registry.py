@@ -28,10 +28,11 @@ DEFAULT_CONFIG = {
     "system_prompt": "You are a helpful assistant. Answer only from the given context.",
     "chunk_size": 500,
     "chunk_overlap": 50,
-    "top_k": 4,
+    "top_k": 6,
     "features": {
         "citations": False,
         "chat_memory": False,
+        "hybrid_search": True,
     },
 }
 
