@@ -33,6 +33,7 @@ DEFAULT_CONFIG = {
         "citations": False,
         "chat_memory": False,
         "hybrid_search": True,
+        "contextual_chunks": True,
     },
 }
 

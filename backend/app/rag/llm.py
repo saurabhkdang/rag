@@ -26,14 +26,20 @@ def _get_client():
     return _client
 
 
-def generate(messages):
+def generate(messages, json_mode=False):
     """
     messages = [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
+    json_mode=True -> the model must reply with valid JSON (the prompt must mention "JSON")
     Returns {"text": "...", "usage": {"input_tokens": .., "output_tokens": ..}}
     """
     client = _get_client()
+
+    options = {}
+    if json_mode:
+        options["response_format"] = {"type": "json_object"}
+
     try:
-        response = client.chat.completions.create(model=OPENAI_MODEL, messages=messages)
+        response = client.chat.completions.create(model=OPENAI_MODEL, messages=messages, **options)
     except Exception as e:
         # Wrong key, no credit, rate limit, network down, unknown model ...
         raise LLMError(f"OpenAI error: {e}") from e

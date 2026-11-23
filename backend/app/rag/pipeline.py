@@ -24,7 +24,10 @@ def _build_context(chunks):
     """Number each chunk, so the LLM (and later citations) can refer to them."""
     parts = []
     for number, chunk in enumerate(chunks, start=1):
-        parts.append(f"[{number}] (source: {chunk['source']}, page {chunk['page']})\n{chunk['text']}")
+        header = f"[{number}] (source: {chunk['source']}, page {chunk['page']})"
+        if chunk.get("context"):
+            header += f"\nAbout this excerpt: {chunk['context']}"
+        parts.append(f"{header}\n{chunk['text']}")
     return "\n\n".join(parts)
 
 

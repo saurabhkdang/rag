@@ -76,6 +76,7 @@ export interface SearchResult {
   page: number
   score: number | null // vector similarity; null = found by keyword search only
   match: 'vector' | 'keyword' | 'both'
+  context: string // LLM-written description ("" if none)
 }
 
 // GET .../documents/search?q=...
