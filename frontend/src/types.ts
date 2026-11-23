@@ -70,10 +70,12 @@ export interface ReindexResult {
 }
 
 export interface SearchResult {
+  id: string
   text: string
   source: string
   page: number
-  score: number // 1 = same meaning, 0 = unrelated
+  score: number | null // vector similarity; null = found by keyword search only
+  match: 'vector' | 'keyword' | 'both'
 }
 
 // GET .../documents/search?q=...

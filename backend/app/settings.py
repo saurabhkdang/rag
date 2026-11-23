@@ -41,3 +41,6 @@ OPENAI_MODEL = os.getenv("OPENAI_MODEL", "")
 
 # Search results with a lower score are treated as "not relevant"
 MIN_SCORE = float(os.getenv("MIN_SCORE", "0.3"))
+
+# Some models (e.g. BGE) want an instruction in front of search questions
+EMBEDDING_QUERY_PREFIX = os.getenv("EMBEDDING_QUERY_PREFIX", "")

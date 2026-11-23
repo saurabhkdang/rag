@@ -70,19 +70,22 @@ export default function SearchTester({ systemId, defaultTopK }: Props) {
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       {results && results.length === 0 && (
-        <p className="mt-4 text-sm text-slate-500">Nothing indexed yet. Index a document first.</p>
+        <p className="mt-4 text-sm text-slate-500">
+          No relevant chunks found (or nothing is indexed yet).
+        </p>
       )}
 
       {results && results.length > 0 && (
         <ol className="mt-4 space-y-3">
           {results.map((r, i) => (
-            <li key={`${r.source}-${i}`} className="rounded-md border border-slate-200 bg-white p-3">
+            <li key={r.id} className="rounded-md border border-slate-200 bg-white p-3">
               <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
                 <span className="font-medium text-slate-700">#{i + 1}</span>
                 <span>
                   {r.source} · page {r.page}
                 </span>
-                <ScoreBar score={r.score} />
+                <MatchBadge match={r.match} />
+                {r.score !== null && <ScoreBar score={r.score} />}
               </div>
               <p className="whitespace-pre-wrap text-sm text-slate-800">{r.text}</p>
             </li>
@@ -106,4 +109,14 @@ function ScoreBar({ score }: { score: number }) {
       <span className="tabular-nums">{score.toFixed(2)}</span>
     </span>
   )
+}
+
+// How the chunk was found
+function MatchBadge({ match }: { match: 'vector' | 'keyword' | 'both' }) {
+  const styles = {
+    vector: 'bg-blue-50 text-blue-700',
+    keyword: 'bg-purple-50 text-purple-700',
+    both: 'bg-green-50 text-green-700',
+  }
+  return <span className={`rounded px-1.5 py-0.5 font-medium ${styles[match]}`}>{match}</span>
 }
