@@ -8,7 +8,9 @@ import type {
   ReindexResult,
   SearchResponse,
   UploadResult,
-  AskResponse
+  AskResponse,
+  FeatureInfo,
+  UpdateSystemInput,
 } from './types'
 
 
@@ -87,6 +89,17 @@ export function getErrorMessage(err: unknown): string {
 // ---------- admin ----------
 export function getSystem(id: string) {
   return request<RagSystem>(`/admin/systems/${id}`)
+}
+
+export function updateSystem(id: string, changes: UpdateSystemInput) {
+  return request<RagSystem>(`/admin/systems/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(changes),
+  })
+}
+
+export function listFeatures() {
+  return request<FeatureInfo[]>('/admin/features')
 }
 
 export async function login(password: string) {

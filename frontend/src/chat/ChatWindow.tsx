@@ -6,7 +6,12 @@ import MessageBubble from './MessageBubble'
 
 let nextId = 1 // simple unique id per message (React needs a stable "key")
 
-export default function ChatWindow({ systemName }: { systemName: string }) {
+interface Props {
+  systemName: string
+  welcomeMessage: string
+}
+
+export default function ChatWindow({ systemName, welcomeMessage }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [waiting, setWaiting] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -42,7 +47,9 @@ export default function ChatWindow({ systemName }: { systemName: string }) {
           {messages.length === 0 && (
             <div className="py-16 text-center">
               <h2 className="text-xl font-semibold text-slate-800">Hi! How can I help?</h2>
-              <p className="mt-2 text-slate-500">Ask me anything about {systemName}.</p>
+              <p className="mt-2 text-slate-500">
+                {welcomeMessage || `Ask me anything about ${systemName}.`}
+              </p>
             </div>
           )}
 

@@ -114,6 +114,12 @@ export default function SystemPage() {
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-semibold">{system.name}</h2>
           <StatusBadge status={system.status} />
+          <Link
+            to={`/systems/${id}/settings`}
+            className="ml-auto rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
+          >
+            Settings
+          </Link>
         </div>
         <p className="mt-1 text-sm text-slate-500">
           {system.id} ·{' '}

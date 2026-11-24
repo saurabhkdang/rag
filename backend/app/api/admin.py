@@ -5,6 +5,7 @@ from app.core import registry
 from app.core.auth import check_password, create_token, require_admin
 from app.core.tenant import require_admin_host
 from app.rag import vectorstore
+from app.features import catalog, validate_features
 
 # Every route in this file only works on admin.<BASE_DOMAIN>
 router = APIRouter(
@@ -31,12 +32,13 @@ class CreateSystemRequest(BaseModel):
 
 class UpdateSystemRequest(BaseModel):
     # All optional: send only what you want to change
-    name: str | None = None
-    system_prompt: str | None = None
-    chunk_size: int | None = Field(default=None, ge=100, le=5000)    # ge = >=, le = <=
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    welcome_message: str | None = Field(default=None, max_length=500)
+    system_prompt: str | None = Field(default=None, min_length=1, max_length=4000)
+    chunk_size: int | None = Field(default=None, ge=100, le=2000)    # ge = >=, le = <=
     chunk_overlap: int | None = Field(default=None, ge=0, le=1000)
     top_k: int | None = Field(default=None, ge=1, le=20)
-    features: dict | None = None
+    features: dict[str, bool] | None = None   # only the flags you want to change
 
 
 # ---------- helpers ----------
@@ -89,6 +91,14 @@ def update_system(system_id: str, body: UpdateSystemRequest):
     if chunk_overlap >= chunk_size:
         raise HTTPException(status_code=400, detail="chunk_overlap must be smaller than chunk_size")
 
+    if "features" in changes:
+        try:
+            validate_features(changes["features"])
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        # MERGE: only the flags that were sent change; all others keep their value
+        changes["features"] = {**config.get("features", {}), **changes["features"]}
+
     return registry.update_system(system_id, changes)
 
 
@@ -110,3 +120,7 @@ def archive_system(system_id: str):
     vectorstore.close(system_id)  # release ChromaDB files first (Windows locks open files)
     registry.archive_system(system_id)
     return {"archived": system_id}
+
+@router.get("/features", dependencies=ADMIN_ONLY)
+def list_features():
+    return catalog()
