@@ -7,6 +7,7 @@ import json
 import re
 import shutil
 from datetime import datetime
+from app.features import default_features
 
 from app.settings import RAG_SYSTEMS_DIR, SYSTEM_SUBFOLDERS, ADMIN_SUBDOMAIN
 
@@ -25,16 +26,12 @@ DEFAULT_CONFIG = {
     "subdomain": "",
     "status": "stopped",          # new systems start stopped
     "created_at": "",
+     "welcome_message": "",
     "system_prompt": "You are a helpful assistant. Answer only from the given context.",
     "chunk_size": 500,
     "chunk_overlap": 50,
     "top_k": 6,
-    "features": {
-        "citations": False,
-        "chat_memory": False,
-        "hybrid_search": True,
-        "contextual_chunks": True,
-    },
+    "features": default_features(),
 }
 
 

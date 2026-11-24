@@ -3,6 +3,7 @@ import AdminLayout from './AdminLayout'
 import DashboardPage from './DashboardPage'
 import LoginPage from './LoginPage'
 import SystemPage from './SystemPage'
+import SystemSettingsPage from './SystemSettingsPage'
 
 export default function AdminApp() {
   return (
@@ -15,6 +16,7 @@ export default function AdminApp() {
         <Route element={<AdminLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/systems/:id" element={<SystemPage />} />
+          <Route path="/systems/:id/settings" element={<SystemSettingsPage />} />
         </Route>
 
         {/* any unknown URL -> dashboard */}

@@ -21,6 +21,7 @@ def system_info(system: dict = Depends(get_current_system)):
     # Only return safe, public info (never the full config)
     return {
         "name": system["name"],
+        "welcome_message": system.get("welcome_message", ""),
         "features": system["features"],
     }
 

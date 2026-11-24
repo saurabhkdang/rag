@@ -12,12 +12,14 @@ export interface RagSystem {
   chunk_overlap: number
   top_k: number
   features: Record<string, boolean>
+  welcome_message?: string
 }
 
 // Public info returned by GET /api/chat/info
 export interface ChatInfo {
   name: string
   features: Record<string, boolean>
+  welcome_message: string
 }
 
 // Body for POST /api/admin/systems
@@ -105,4 +107,25 @@ export interface ChatMessage {
   role: MessageRole
   text: string
   sources?: Source[]
+}
+
+// GET /api/admin/features
+export interface FeatureInfo {
+  key: string
+  label: string
+  description: string
+  default: boolean
+  needs_reindex: boolean
+  coming_soon: boolean
+}
+
+// PATCH /api/admin/systems/{id} (send only what changed)
+export interface UpdateSystemInput {
+  name?: string
+  welcome_message?: string
+  system_prompt?: string
+  top_k?: number
+  chunk_size?: number
+  chunk_overlap?: number
+  features?: Record<string, boolean>
 }
