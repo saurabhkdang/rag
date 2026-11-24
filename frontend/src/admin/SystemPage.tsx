@@ -115,8 +115,14 @@ export default function SystemPage() {
           <h2 className="text-xl font-semibold">{system.name}</h2>
           <StatusBadge status={system.status} />
           <Link
-            to={`/systems/${id}/settings`}
+            to={`/systems/${id}/logs`}
             className="ml-auto rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
+          >
+            Logs
+          </Link>
+          <Link
+            to={`/systems/${id}/settings`}
+            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50"
           >
             Settings
           </Link>

@@ -95,6 +95,7 @@ export interface Source {
 
 // POST /api/chat/ask
 export interface AskResponse {
+  id: string | null // null if the server couldn't save the log
   answer: string
   sources?: Source[]
 }
@@ -102,11 +103,15 @@ export interface AskResponse {
 export type MessageRole = 'user' | 'assistant' | 'error'
 
 // One bubble in the chat
+export type Rating = 'up' | 'down'
+
 export interface ChatMessage {
   id: number
   role: MessageRole
   text: string
   sources?: Source[]
+  logId?: string | null // server id of this answer (for feedback)
+  rating?: Rating
 }
 
 // GET /api/admin/features
@@ -134,4 +139,37 @@ export interface UpdateSystemInput {
 export interface HistoryMessage {
   role: 'user' | 'assistant'
   content: string
+}
+
+// ----- admin: logs & usage -----
+export type LogFilter = 'all' | 'up' | 'down' | 'unanswered'
+
+export interface LogEntry {
+  id: string
+  at: string
+  model: string
+  question: string
+  search_question?: string // missing when the AI call failed
+  answer?: string
+  found?: boolean
+  error?: boolean
+  sources?: Source[]
+  input_tokens?: number
+  output_tokens?: number
+  cost_usd: number
+  duration_ms: number
+  history_used: number
+  rating: Rating | null
+}
+
+export interface MonthUsage {
+  month: string
+  questions: number
+  unanswered: number
+  errors: number
+  input_tokens: number
+  output_tokens: number
+  cost_usd: number
+  up: number
+  down: number
 }

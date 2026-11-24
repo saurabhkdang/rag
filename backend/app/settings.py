@@ -39,6 +39,10 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "")
 
+# ----- Cost tracking -----
+PRICE_INPUT_PER_1M = float(os.getenv("PRICE_INPUT_PER_1M", "0"))
+PRICE_OUTPUT_PER_1M = float(os.getenv("PRICE_OUTPUT_PER_1M", "0"))
+
 # Search results with a lower score are treated as "not relevant"
 MIN_SCORE = float(os.getenv("MIN_SCORE", "0.3"))
 

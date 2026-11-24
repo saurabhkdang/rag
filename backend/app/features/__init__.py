@@ -35,6 +35,13 @@ FEATURES = {
         "needs_reindex": False,
         "coming_soon": False,
     },
+        "feedback": {
+        "label": "Answer feedback",
+        "description": "Show thumbs up/down under each answer. Ratings appear on the admin Logs page.",
+        "default": True,
+        "needs_reindex": False,
+        "coming_soon": False,
+    },
 }
 
 
