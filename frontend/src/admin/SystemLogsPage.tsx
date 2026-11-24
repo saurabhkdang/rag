@@ -129,7 +129,9 @@ function LogItem({ entry }: { entry: LogEntry }) {
         {!entry.error && !entry.found && (
           <span className="rounded bg-amber-50 px-1.5 py-0.5 text-amber-700">Unanswered</span>
         )}
-        {entry.history_used > 0 && <span className="rounded bg-slate-100 px-1.5 py-0.5">Follow-up</span>}
+        {entry.search_question && entry.search_question !== entry.question && (
+          <span className="rounded bg-slate-100 px-1.5 py-0.5">Follow-up</span>
+        )}
         {entry.rating === 'up' && <span>👍</span>}
         {entry.rating === 'down' && <span>👎</span>}
         <span className="ml-auto">
@@ -139,7 +141,7 @@ function LogItem({ entry }: { entry: LogEntry }) {
 
       <p className="mt-2 font-medium text-slate-800">{entry.question}</p>
       {entry.search_question && entry.search_question !== entry.question && (
-        <span className="rounded bg-slate-100 px-1.5 py-0.5">Follow-up</span>
+        <p className="mt-1 text-xs text-slate-500">Searched as: {entry.search_question}</p>
       )}
 
       {entry.answer && (
