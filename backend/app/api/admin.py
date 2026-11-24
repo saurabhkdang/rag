@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core import registry
+from app.core import registry, chatlog
 from app.core.auth import check_password, create_token, require_admin
 from app.core.tenant import require_admin_host
 from app.rag import vectorstore
@@ -124,3 +125,25 @@ def archive_system(system_id: str):
 @router.get("/features", dependencies=ADMIN_ONLY)
 def list_features():
     return catalog()
+
+@router.get("/systems/{system_id}/logs", dependencies=ADMIN_ONLY)
+def get_logs(
+    system_id: str,
+    filter: Literal["all", "up", "down", "unanswered"] = "all",
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    _get_or_404(system_id)
+    entries = chatlog.all_entries(system_id)
+
+    if filter in ("up", "down"):
+        entries = [e for e in entries if e["rating"] == filter]
+    elif filter == "unanswered":
+        entries = [e for e in entries if not e.get("found") and not e.get("error")]
+
+    return entries[:limit]
+
+
+@router.get("/systems/{system_id}/usage", dependencies=ADMIN_ONLY)
+def get_usage(system_id: str):
+    _get_or_404(system_id)
+    return chatlog.usage_by_month(system_id)

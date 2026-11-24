@@ -62,6 +62,10 @@ def vectordb_dir(system_id):
     """Folder where a system's ChromaDB database is stored."""
     return _folder(system_id) / "vectordb"
 
+def logs_dir(system_id):
+    """Folder where a system's logs are stored."""
+    return _folder(system_id) / "logs"
+
 def load_system(system_id):
     """Return the config dict of one system, or None if it doesn't exist."""
     path = _config_path(system_id)

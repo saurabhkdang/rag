@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { askQuestion, getErrorMessage } from '../api'
-import type { ChatMessage, HistoryMessage } from '../types'
+import { askQuestion, getErrorMessage, sendFeedback } from '../api'
+import type { ChatMessage, HistoryMessage, Rating } from '../types'
 import ChatInput from './ChatInput'
 import MessageBubble from './MessageBubble'
 
@@ -17,6 +17,7 @@ interface Props {
   systemName: string
   welcomeMessage: string
   memoryEnabled: boolean
+  feedbackEnabled: boolean
 }
 
 // Chat bubbles -> conversation for the AI (error bubbles are not part of the conversation)
@@ -31,7 +32,7 @@ function toHistory(messages: ChatMessage[]): HistoryMessage[] {
   return history.slice(-MAX_HISTORY) // only the most recent ones
 }
 
-export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled }: Props) {
+export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled, feedbackEnabled }: Props) {
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [waiting, setWaiting] = useState(false)
@@ -47,7 +48,7 @@ export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled }
     setMessages((list) => [...list, { ...message, id: nextId++ }])
   }
 
-    async function handleSend(question: string) {
+  async function handleSend(question: string) {
     // `messages` here is still the list BEFORE this new question,
     // which is exactly the history we want to send
     const history = memoryEnabled ? toHistory(messages) : []
@@ -56,11 +57,25 @@ export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled }
     setWaiting(true)
     try {
       const response = await askQuestion(question, history)
-      addMessage({ role: 'assistant', text: response.answer, sources: response.sources })
+      addMessage({ role: 'assistant', text: response.answer, sources: response.sources, logId: response.id })
     } catch (err) {
       addMessage({ role: 'error', text: getErrorMessage(err) })
     } finally {
       setWaiting(false)
+    }
+  }
+
+  function setRating(messageId: number, rating: Rating | undefined) {
+    setMessages((list) => list.map((m) => (m.id === messageId ? { ...m, rating } : m)))
+  }
+
+  async function handleRate(messageId: number, logId: string, rating: Rating) {
+    // "Optimistic update": show the choice immediately, undo it if the server fails
+    setRating(messageId, rating)
+    try {
+      await sendFeedback(logId, rating)
+    } catch {
+      setRating(messageId, undefined)
     }
   }
 
@@ -78,9 +93,15 @@ export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled }
             </div>
           )}
 
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
+          {messages.map((message) => {
+            const logId = message.logId
+            // Thumbs only if the feature is on AND the server gave this answer an id
+            const onRate =
+              feedbackEnabled && logId
+                ? (rating: Rating) => handleRate(message.id, logId, rating)
+                : undefined
+            return <MessageBubble key={message.id} message={message} onRate={onRate} />
+          })}
 
           {waiting && <TypingIndicator />}
 

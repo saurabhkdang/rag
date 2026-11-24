@@ -1,7 +1,12 @@
 import Markdown from 'react-markdown'
-import type { ChatMessage } from '../types'
+import type { ChatMessage, Rating } from '../types'
 
-export default function MessageBubble({ message }: { message: ChatMessage }) {
+interface Props {
+  message: ChatMessage
+  onRate?: (rating: Rating) => void // only passed when feedback is possible
+}
+
+export default function MessageBubble({ message, onRate }: Props) {
   // ----- the visitor's question: right side, dark -----
   if (message.role === 'user') {
     return (
@@ -38,7 +43,41 @@ export default function MessageBubble({ message }: { message: ChatMessage }) {
             {message.sources.map((s) => `${s.source} (p. ${s.page})`).join(' · ')}
           </div>
         )}
+
+        {onRate && (
+          <div className="mt-2 flex gap-1">
+            <RateButton label="Helpful" active={message.rating === 'up'} onClick={() => onRate('up')}>
+              👍
+            </RateButton>
+            <RateButton label="Not helpful" active={message.rating === 'down'} onClick={() => onRate('down')}>
+              👎
+            </RateButton>
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+interface RateButtonProps {
+  label: string
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}
+
+function RateButton({ label, active, onClick, children }: RateButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      aria-pressed={active}
+      className={`rounded-md px-1.5 py-0.5 text-sm ${
+        active ? 'bg-slate-300' : 'opacity-50 hover:bg-slate-200 hover:opacity-100'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

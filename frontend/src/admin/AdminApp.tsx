@@ -4,6 +4,7 @@ import DashboardPage from './DashboardPage'
 import LoginPage from './LoginPage'
 import SystemPage from './SystemPage'
 import SystemSettingsPage from './SystemSettingsPage'
+import SystemLogsPage from './SystemLogsPage'
 
 export default function AdminApp() {
   return (
@@ -17,6 +18,7 @@ export default function AdminApp() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/systems/:id" element={<SystemPage />} />
           <Route path="/systems/:id/settings" element={<SystemSettingsPage />} />
+          <Route path="/systems/:id/logs" element={<SystemLogsPage />} />
         </Route>
 
         {/* any unknown URL -> dashboard */}

@@ -12,6 +12,10 @@ import type {
   FeatureInfo,
   UpdateSystemInput,
   HistoryMessage,
+  LogEntry,
+  LogFilter,
+  MonthUsage,
+  Rating,
 } from './types'
 
 
@@ -186,4 +190,21 @@ export function askQuestion(question: string, history: HistoryMessage[] = []) {
     method: 'POST',
     body: JSON.stringify({ question, history }),
   })
+}
+
+// ----- chat: feedback -----
+export function sendFeedback(id: string, rating: Rating) {
+  return request<{ ok: boolean }>('/chat/feedback', {
+    method: 'POST',
+    body: JSON.stringify({ id, rating }),
+  })
+}
+
+// ----- admin: logs & usage -----
+export function getLogs(systemId: string, filter: LogFilter = 'all') {
+  return request<LogEntry[]>(`/admin/systems/${systemId}/logs?filter=${filter}`)
+}
+
+export function getUsage(systemId: string) {
+  return request<MonthUsage[]>(`/admin/systems/${systemId}/usage`)
 }
