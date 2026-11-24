@@ -11,6 +11,7 @@ import type {
   AskResponse,
   FeatureInfo,
   UpdateSystemInput,
+  HistoryMessage,
 } from './types'
 
 
@@ -180,9 +181,9 @@ export function searchDocuments(systemId: string, query: string, topK: number) {
   return request<SearchResponse>(`${documentsPath(systemId)}/search?${params}`)
 }
 
-export function askQuestion(question: string) {
+export function askQuestion(question: string, history: HistoryMessage[] = []) {
   return request<AskResponse>('/chat/ask', {
     method: 'POST',
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, history }),
   })
 }

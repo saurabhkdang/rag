@@ -35,7 +35,7 @@ export default function ChatApp() {
         <h1 className="text-lg font-semibold text-slate-800">{info.name}</h1>
       </header>
 
-      <ChatWindow systemName={info.name} welcomeMessage={info.welcome_message} />
+      <ChatWindow systemName={info.name} welcomeMessage={info.welcome_message} memoryEnabled={info.features.chat_memory === true} />
     </div>
   )
 }

@@ -1,17 +1,38 @@
 import { useEffect, useRef, useState } from 'react'
 import { askQuestion, getErrorMessage } from '../api'
-import type { ChatMessage } from '../types'
+import type { ChatMessage, HistoryMessage } from '../types'
 import ChatInput from './ChatInput'
 import MessageBubble from './MessageBubble'
 
 let nextId = 1 // simple unique id per message (React needs a stable "key")
+
+const MAX_HISTORY = 6 // same as the backend
 
 interface Props {
   systemName: string
   welcomeMessage: string
 }
 
-export default function ChatWindow({ systemName, welcomeMessage }: Props) {
+interface Props {
+  systemName: string
+  welcomeMessage: string
+  memoryEnabled: boolean
+}
+
+// Chat bubbles -> conversation for the AI (error bubbles are not part of the conversation)
+function toHistory(messages: ChatMessage[]): HistoryMessage[] {
+  const history: HistoryMessage[] = []
+  for (const message of messages) {
+    // Inside this "if", TypeScript knows role is 'user' or 'assistant' (not 'error')
+    if (message.role === 'user' || message.role === 'assistant') {
+      history.push({ role: message.role, content: message.text })
+    }
+  }
+  return history.slice(-MAX_HISTORY) // only the most recent ones
+}
+
+export default function ChatWindow({ systemName, welcomeMessage, memoryEnabled }: Props) {
+
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [waiting, setWaiting] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -26,11 +47,15 @@ export default function ChatWindow({ systemName, welcomeMessage }: Props) {
     setMessages((list) => [...list, { ...message, id: nextId++ }])
   }
 
-  async function handleSend(question: string) {
+    async function handleSend(question: string) {
+    // `messages` here is still the list BEFORE this new question,
+    // which is exactly the history we want to send
+    const history = memoryEnabled ? toHistory(messages) : []
+
     addMessage({ role: 'user', text: question })
     setWaiting(true)
     try {
-      const response = await askQuestion(question)
+      const response = await askQuestion(question, history)
       addMessage({ role: 'assistant', text: response.answer, sources: response.sources })
     } catch (err) {
       addMessage({ role: 'error', text: getErrorMessage(err) })
@@ -61,6 +86,17 @@ export default function ChatWindow({ systemName, welcomeMessage }: Props) {
 
           {/* invisible marker at the bottom; we scroll to it */}
           <div ref={bottomRef} />
+          {memoryEnabled && messages.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setMessages([])}
+                disabled={waiting}
+                className="text-xs text-slate-500 hover:text-slate-900 disabled:opacity-50"
+              >
+                + New chat
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

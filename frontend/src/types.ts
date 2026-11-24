@@ -129,3 +129,9 @@ export interface UpdateSystemInput {
   chunk_overlap?: number
   features?: Record<string, boolean>
 }
+
+// One earlier message sent with a question (chat memory)
+export interface HistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+}

@@ -30,10 +30,10 @@ FEATURES = {
     },
     "chat_memory": {
         "label": "Chat memory",
-        "description": "Remember earlier messages, so users can ask follow-up questions.",
+        "description": "Remember the last few messages, so users can ask follow-up questions. One small extra AI call per follow-up.",
         "default": False,
         "needs_reindex": False,
-        "coming_soon": True,
+        "coming_soon": False,
     },
 }
 
